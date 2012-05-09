@@ -1,0 +1,352 @@
+<html>
+<head>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js" ></script>
+<script src="http://documentcloud.github.com/underscore/underscore.js"></script>
+<script src="https://raw.github.com/DmitryBaranovskiy/raphael/master/raphael-min.js"></script>
+<script>
+var paper
+$(document).ready(function() {
+    var payline_list = $('#paylines')
+    var reel_list = $('#window')
+    paper = Raphael( 0, reel_list.position().top, reel_list.width(), 75 )
+    var payline_colors = ['#E01B6A', '#1BE0C9', '#1B22E0', '#E0741B', '#8B1BE0', '#33451C' ]
+    
+    var hover_payline = function(payline) {
+        return function() {
+            _.each( $(reel_list).find('ul'), function( reel, it ) {
+                $(reel).find('li:nth-child('+(payline[it]+1)+')').css({'font-weight': 'bold'})
+            })
+        }
+    }
+    var unhover_payline = function() {
+        $('#window div ul li').css({'font-weight': 'normal'})
+    }
+    
+    var Payline = function( payline ) {
+        if( !( this instanceof Payline ) ) {
+            return new Payline( payline )
+        }
+        this.payline = payline
+        this.id = 'payline-' + this.payline.join('-')
+    }
+    Payline.prototype.show = function() {
+        var payline_li = $('#' + this.id)
+        if (!payline_li.length) {
+            payline_li = $('<li id="'+this.id+'">' + this.payline.join(',') + '</li>')
+            payline_list.append(payline_li)
+        }
+        var self = this
+        
+        var on_hover = function() {
+            self.line.attr('stroke-width', 2 )
+            self.line.attr('opacity', 1 )
+        }
+        var off_hover = function() {
+            if( !self.is_winner ) {
+                self.line.attr('stroke-width', 1 )
+                self.line.attr('opacity', 0.3 )
+            }
+        }
+        
+        payline_li.show().hover( on_hover, off_hover )
+        
+        if( !this.line ) {
+            var path = ''
+              , payline = this.payline
+            _.each( $(reel_list).find('ul'), function( reel, it ) {
+                var el = $(reel).find('li:nth-child('+(payline[it]+1)+')')
+                  , pos = el.position()
+                  , ht  = el.height()
+                  , wt  = el.width()
+                  
+                pos.top -= $('#window').position().top
+                  
+                path += ( path == '' ) ? 'M' : 'L'
+                path += (pos.left + (wt/2)) + ',' + (pos.top + (ht/2))
+            })
+            
+            this.line = paper.path( path )
+            this.line.attr('stroke', payline_colors.pop() )
+            this.line.attr('opacity', 0.3 )
+            this.line.hover( on_hover, off_hover )
+        } else {
+            this.line.show()
+        }
+    }
+    Payline.prototype.hide = function() {
+        $('#' + this.id).hide()
+        this.line.hide()
+    }
+    Payline.prototype.set_win = function( amount ) {
+        $('#' + this.id).css({'font-weight': 'bold'}).append( '<span>' + amount + '</span>' )
+        this.line.attr('stroke-width', 2 )
+        this.line.attr('opacity', 1 )
+        this.is_winner = true
+    }
+    Payline.prototype.reset = function() {
+        $('#' + this.id).find('span').remove()
+        $('#' + this.id).css({'font-weight': 'normal'})
+        if( this.line ) {
+            this.line.attr('stroke-width', 1 )
+            this.line.attr('opacity', 0.3 )
+        }
+        this.is_winner = false
+    }
+    
+    var paylines = _.map({[ print(JSON.stringify(configuration.paylines)) ]}, function( payline ) {
+        return new Payline( payline )
+    })
+    
+    var Reel = function( reel ) {
+        if( !( this instanceof Reel ) ) {
+            return new Reel( reel )
+        }
+        this.reel = reel
+        this.id = 'reel-' + (+$(reel_list).children('.reel').length+1)
+        this.show()
+    }
+    Reel.prototype.show = function() {
+        
+        var reel_div = $('#'+this.id)
+          , exists = reel_div.length > 0
+        
+        if (!exists) {
+            reel_div =  $('<div class="reel" id="'+this.id+'" />')
+        }
+        reel_div.empty()
+        
+        var reel_ul  = $('<ul />').appendTo( reel_div )
+        
+        _.each( this.reel, function( symbol ) {
+            reel_ul.append( $('<li>'+symbol+'</li>'))
+        })
+        
+        if( !exists ) {
+            $(reel_list).append( reel_div )
+        }
+    }
+    Reel.prototype.spin = function() {
+        var self = this
+        this.spinning = setInterval(function() {
+            self.draw_spin()
+        }, 100 )
+        
+    }
+    Reel.prototype.draw_spin = function() {
+        _.each( $('#'+this.id + ' ul li'), function( li ) {
+            $(li).text( get_random_symbol() )
+        })
+    }
+    Reel.prototype.resolve = function( reel ) {
+        clearInterval( this.spinning )
+        this.reel = reel
+        this.show()
+    }
+    
+    var symbols = {[ print(JSON.stringify(configuration.symbols)) ]}
+    var reels = _.map( _.range({{configuration.window[0]}}), function( iterator ) {
+        var symbol_list = _.map( _.range({{configuration.window[1]}}), function( height_iterator ) {
+            var index = Math.floor((Math.random()*{{configuration.symbols.length}}))
+            return symbols[ index ]
+        })
+        return new Reel( symbol_list )
+    })
+    
+    var get_random_symbol = function() {
+        var index = Math.floor((Math.random()*symbols.length))
+        return symbols[ index ]
+    }
+
+    $('#bet').click(function() {
+        _.each( reels, function( reel ) {
+            reel.spin()
+        })
+        
+        var plines = _.map( _.filter( paylines, function( payline ) {
+            payline.reset()
+            return $('#' + payline.id ).is(':visible')
+        }), function( payline ) {
+            return payline.payline
+        })
+        
+        $.post( '/bet', {
+            wager: $('#wager-input').val()
+          , paylines: plines
+        }).complete(function( response ) {
+            var data
+            try {
+                data = JSON.parse( response.responseText )
+            } catch( e ){}
+            
+            data.reels = []
+            var num_reels = data.window[0].length
+            _.each( _.range( num_reels ), function( reel_index ) {
+                _.each( _.range( data.window.length ), function( symbol_index ) {
+                    if( !data.reels[ reel_index ] ) data.reels[ reel_index ] = []
+                    data.reels[ reel_index ].push( data.window[ symbol_index ][ reel_index ] )
+                })
+            })
+            var global_it = 0
+            _.each( reels, function( reel, it ) {
+                global_it = it
+                setTimeout(function() {
+                    reel.resolve( data.reels[ it ] )
+                }, it*500 )
+            })
+
+            setTimeout(function() {
+                $('#win').html( data.payout )
+                $('#balance').html( (Number($('#balance').text()) + Number(data.payout) -( Number($('#wager-input').val()) * plines.length )).toFixed(2) )
+                 _.each( data.outcomes, function( outcome ) {
+                    if( outcome.outcome == "win" ) {
+                        paylines_id[ 'payline-' + outcome.payline.join('-') ].set_win( outcome.payout )
+                    }
+                })
+            }, global_it*500)
+            
+            var paylines_id = {}
+            _.each( paylines, function( payline ) {
+                paylines_id[ payline.id ] = payline
+            })
+        })
+    })
+    $('#wager-input').on('keyup', function() {
+        $('#total-bet-amount').text( (+$('#payline-amount').text() * +$('#wager-input').val()).toFixed(2) )
+    })
+    $('#lines').delegate('.type', 'click', function( e ) {
+        var selected_paylines = Number( $('#payline-amount').text() )
+        switch( $(e.currentTarget).attr('id') ) {
+            case 'payline-add':
+                if( selected_paylines < paylines.length ) {
+                    paylines[ selected_paylines ].show()
+                    $('#payline-amount').text( ++selected_paylines )
+                    $('#total-bet-amount').text( (selected_paylines * +$('#wager-input').val()).toFixed(2) )
+                }
+                break
+            case 'payline-dec':
+                if( selected_paylines > 1 ) {
+                    paylines[ --selected_paylines ].hide()
+                    $('#payline-amount').text( selected_paylines )
+                    $('#total-bet-amount').text( (selected_paylines * +$('#wager-input').val()).toFixed(2) )
+                }
+                break
+        }
+    }) 
+    paylines[0].show()
+})
+</script>
+<style>
+.clear {
+    clear:both;
+}
+html, body {
+    margin: 0;
+    padding: 0;
+}
+#game {
+    width: 700px;
+}
+#header {
+    background-color: #e0e0e0;
+    padding: 5px;
+}
+#header #party-balance {
+    float: left;
+}
+#header #name {
+    float: right;
+}
+#window {
+    overflow: auto;
+}
+#footer {
+    background-color: #e0e0e0;
+    padding: 5px;
+}
+#footer > div {
+    float: left;
+    margin-right: 35px;
+}
+#footer #lines {
+    /*margin: 0px 5px;*/
+}
+#bet {
+    /*border:1px solid #252525;*/
+}
+.footer-window {
+    background-color:#222;
+    color: #e0e0e0;
+    padding: 0px 5px;
+    margin: 0px 5px;
+    float: left;
+}
+.footer-text {
+    float: left;
+    margin-right: 5px;
+}
+#lines .type {
+    margin-right: 5px;
+}
+
+.reel {
+    float: left;
+}
+.reel ul {
+    height: 75px;
+    overflow: hidden;
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+.reel ul li {
+    height: 25px;
+    line-height: 25px;
+    width: 150px;
+    text-align: center;
+}
+#paylines li span {
+    display: inline-block;
+    margin-left: 10px;   
+}
+#lines div {
+    float: left;
+}
+#lines div.type, #bet {
+    cursor: pointer;
+}
+</style>
+</head>
+<body>
+<div id="game">
+<div id="header">
+    <div id="party-balance">&#163;<span id="balance">{{balance}}</span></div>
+    <div id="name">{{first_name}}</div>
+    <div style="clear:both"></div>
+</div>
+<div id="window"></div>
+<div id="footer">
+    <div id="lines">
+        <div class="footer-text">Paylines</div>
+        <div id="payline-amount" class="footer-window">1</div>
+        <div class="type" id="payline-dec">-</div>
+        <div class="type" id="payline-add">+</div>
+    </div>
+    <div id="wager">
+        <div class="footer-text">Wager</div>
+        <input type="text" id="wager-input" style="width:100px" value="1.00" style="float:left" />
+    </div>
+    <div id="total-bet">
+        <div class="footer-text">Total Bet</div>
+        <div id="total-bet-amount" class="footer-window">1.00</div>
+    </div>
+    <div>
+        <div class="footer-text">Win</div>
+        <div id="win" class="footer-window">0.00</div>
+    </div>
+    <input type="button" id="bet" value="Bet!"></input>
+    <div style="clear:both;float:none"></div>
+</div>
+<ul id="paylines"></ul>
+</div>
+</body>
+</html>
