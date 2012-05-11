@@ -130,7 +130,7 @@ server.post( '/bet', function( req, res, next ) {
     var r = http.request({
 	   host   : betable_host 
 	 , port   : betable_port
-	 , path   : '/1.0/game/'+game_id+'/bet?access_token='+req.session.access_token
+	 , path   : '/1.0/games/'+game_id+'/bet?access_token='+req.session.access_token
 	 , method : 'POST'
      , headers: {
 	       'content-type': 'application/json; charset=UTF-8'
