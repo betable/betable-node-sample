@@ -147,7 +147,11 @@ server.post( '/bet', function( req, res, next ) {
     httpme({
 	   host   : betable_host 
 	 , port   : betable_port
+<<<<<<< HEAD
 	 , path   : path_preface + 'games/' + game_id + '/bet?access_token=' + req.session.access_token
+=======
+	 , path   : '/1.0/games/'+game_id+'/bet?access_token='+req.session.access_token
+>>>>>>> 4ab65831c8205616c15fa4e2586a5ee3b5725263
 	 , method : 'POST'
      , headers: {
 	       'content-type'   : 'application/json; charset=UTF-8'
