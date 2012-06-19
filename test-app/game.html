@@ -8,8 +8,25 @@ var paper
 $(document).ready(function() {
     var payline_list = $('#paylines')
     var reel_list = $('#window')
-    paper = Raphael( 0, reel_list.position().top, reel_list.width(), 75 )
+    paper = Raphael( 0, reel_list.position().top, reel_list.width(), {{configuration.window[0]*25}} )
     var payline_colors = ['#E01B6A', '#1BE0C9', '#1B22E0', '#E0741B', '#8B1BE0', '#33451C' ]
+    
+    var print_response = function( response, request_body ) {
+        var res = ['POST /1.0/bet/game_id/?access_token=XXX']
+        res.push('Content-Type: application/json; charset=utf8')
+        res = res.concat( JSON.stringify(request_body,undefined,4).split('\n'))
+        $('#bet-request').html(_.reduce(res, function(text, line) {
+            return text + '> ' + line + '\n'
+        }, ''))
+        res = []
+        res.push('HTTP/1.1 ' + response.status + ' ' + response.statusText )
+        res = res.concat(response.getAllResponseHeaders().split('\n'))
+        res = res.concat( JSON.stringify(JSON.parse(response.responseText).bet_response,undefined,4).split('\n') )
+        
+        $('#bet-request').html(_.reduce(res, function(text, line) {
+            return text + '< ' + line + '\n'
+        }, $('#bet-request').html()))
+    }
     
     var hover_payline = function(payline) {
         return function() {
@@ -177,6 +194,8 @@ $(document).ready(function() {
             try {
                 data = JSON.parse( response.responseText )
             } catch( e ){}
+            var request_body = data.bet_body
+            data = data.bet_response
             
             data.reels = []
             var num_reels = data.window[0].length
@@ -190,6 +209,7 @@ $(document).ready(function() {
             _.each( reels, function( reel, it ) {
                 global_it = it
                 setTimeout(function() {
+                    if( it == (num_reels-1) ) print_response( response, request_body )
                     reel.resolve( data.reels[ it ] )
                 }, it*500 )
             })
@@ -347,6 +367,9 @@ html, body {
     <div style="clear:both;float:none"></div>
 </div>
 <ul id="paylines"></ul>
+<div>
+    <pre id="bet-request"></pre>
+</div>
 </div>
 </body>
 </html>
