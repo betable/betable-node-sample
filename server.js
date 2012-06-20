@@ -57,6 +57,8 @@ var game_id       = 'U7unzZjEeWP9P2UySF9clY'
 
 server.use( express.bodyParser() )
 server.use( express.cookieParser() )
+server.use( '/javascript', express.static( __dirname + '/javascript' ))
+server.use( '/css',        express.static( __dirname + '/css' ))
 server.set( 'view options', { layout: false } ) 
 server.set( 'views', __dirname + '/' )
 server.register( '.html', {
@@ -122,7 +124,7 @@ server.get( '/user', function( req, res, next ) {
             return res.render( 'game.html', { 
                 first_name    : result_account.body.first_name
               , balance       : result_wallet.body[economy].balance
-              , configuration : configuration
+              , configuration : JSON.stringify(configuration)
             })
         })
     })

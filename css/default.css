@@ -1,0 +1,72 @@
+.clear {
+    clear:both;
+}
+html, body {
+    margin: 0;
+    padding: 0;
+}
+#game {
+    width: 700px;
+}
+#header {
+    background-color: #e0e0e0;
+    padding: 5px;
+}
+#header #top-balance {
+    float: left;
+}
+#header #name {
+    float: right;
+}
+#window {
+    overflow: auto;
+}
+#footer {
+    background-color: #e0e0e0;
+    padding: 5px;
+}
+#footer > div {
+    float: left;
+    margin-right: 35px;
+}
+.footer-window {
+    background-color:#222;
+    color: #e0e0e0;
+    padding: 0px 5px;
+    margin: 0px 5px;
+    float: left;
+}
+.footer-text {
+    float: left;
+    margin-right: 5px;
+}
+#lines .type {
+    margin-right: 5px;
+}
+
+.reel {
+    float: left;
+}
+.reel ul {
+    height: 75px;
+    overflow: hidden;
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+.reel ul li {
+    height: 25px;
+    line-height: 25px;
+    width: 150px;
+    text-align: center;
+}
+#paylines li span {
+    display: inline-block;
+    margin-left: 10px;   
+}
+#lines div {
+    float: left;
+}
+#lines div.type, #bet {
+    cursor: pointer;
+}
