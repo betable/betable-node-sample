@@ -1,13 +1,13 @@
-;(function( $, Raphael, _ ) {   
-    var Betable = function() {}
+;(function( $, Raphael, _ ) {
+    var BetableSlot = function() {}
     
-    Betable.prototype.get_random_symbol = function() {
+    BetableSlot.prototype.get_random_symbol = function() {
         var index = Math.floor( Math.random() * this.config.symbols.length )
         return this.config.symbols[ index ]
     }
     
-    Betable.prototype.init = function( configuration ) {
-        this.config = configuration
+    BetableSlot.prototype.init = function( config, access_token ) {
+        this.config = config.configuration
         
         var self = this
         
@@ -20,6 +20,11 @@
             }))
         })
         
+        this.sdk          = new Betable( config.game_id, access_token )
+        this.economy      = config.economy
+        this.game_id      = config.game_id
+        this.access_token = access_token
+        
         this.paylines[0].show()
         
         $('#bet')         .click(function() { self.bet.call( self ) })
@@ -27,27 +32,23 @@
         $('#wager-input') .on('keyup', this.update_bet_amount )
     }
     
-    Betable.prototype.bet = function() {
+    BetableSlot.prototype.bet = function() {
         var self = this
         _.each( this.reels, function( reel ) { reel.spin() })
         
-        var plines = _.map( _.filter( self.paylines, function( payline ) {
-            payline.reset()
-            return $('#' + payline.id ).is(':visible')
-        }), function( payline ) {
-            return payline.payline
-        })
+        var bet_obj = {
+            currency : 'GBP'
+          , economy  : self.economy
+          , paylines : _.map( _.filter( self.paylines, function( payline ) {
+                payline.reset()
+                return $('#' + payline.id ).is(':visible')
+            }), function( payline ) {
+                return payline.payline
+            })
+          , wager    : $('#wager-input').val()
+        }
         
-        $.post( '/bet', {
-            wager    : $('#wager-input').val()
-          , paylines : plines
-        }).complete(function( response ) {
-            var data
-            try { data = JSON.parse( response.responseText ) } catch( e ){}
-            
-            var request_body = data.bet_body
-            data = data.bet_response
-            
+        var bet_response = function( data, xhr ) {            
             var num_reels   = data.window[0].length
               , paylines_id = {}
             
@@ -71,22 +72,37 @@
 
             setTimeout(function() {
                 $('#win').html( data.payout )
-                $('#balance').html( (Number($('#balance').text()) + Number(data.payout) -( Number($('#wager-input').val()) * plines.length )).toFixed(2) )
+                $('#balance').html( (Number($('#balance').text()) + Number(data.payout) -( Number($('#wager-input').val()) * bet_obj.paylines.length )).toFixed(2) )
                  _.each( data.outcomes, function( outcome ) {
                     if( outcome.outcome == "win" ) {
                         paylines_id[ 'payline-' + outcome.payline.join('-') ].set_win( outcome.payout )
                     }
                 })
-                self.print_response( response, request_body )
+                self.print_response( xhr, bet_obj )
             }, (self.reels.length-1) * 500 )
+        }
+        
+        this.sdk.canIGamble( function( response ) {
+            //dont check this in
+            response.can_gamble = true
+            if( response && response.can_gamble ) {
+                self.sdk.bet( bet_obj, bet_response, function( error ) {
+                    console.log( 'error', error )
+                    //handle error
+                })
+            } else {
+                //cannot gamble, display virtual currency
+            }
+        }, function( error ) {
+            //perform error
         })
     }
 
-    Betable.prototype.update_bet_amount = function() {
+    BetableSlot.prototype.update_bet_amount = function() {
         $('#total-bet-amount').text( (+$('#payline-amount').text() * +$('#wager-input').val()).toFixed(2) )
     }
     
-    Betable.prototype.change_payline = function( e ) {
+    BetableSlot.prototype.change_payline = function( e ) {
         var selected_paylines = Number( $('#payline-amount').text() )
         switch( $(e.currentTarget).attr('id') ) {
             case 'payline-add':
@@ -106,19 +122,19 @@
         }
     }
     
-    Betable.prototype.print_response = function( response, request_body ) {
-        var res = ['POST /1.0/bet/game_id/?access_token=XXX'
-                 , 'Content-Type: application/json; charset=utf8']
+    BetableSlot.prototype.print_response = function( response, request_body ) {
+        var res = ['POST /1.0/bet/'+this.game_id+'/?access_token='+this.access_token
+                 , 'Content-Type: application/json; charset=utf-8']
         res = res.concat( JSON.stringify(request_body,undefined,4).split('\n'))
         
         $('#bet-request').html(_.reduce(res, function(text, line) { return text + '> ' + line + '\n' }, ''))
         
         res = ['HTTP/1.1 ' + response.status + ' ' + response.statusText]
         res = res.concat( response.getAllResponseHeaders().split('\n') )
-        res = res.concat( JSON.stringify(JSON.parse(response.responseText).bet_response,undefined,4).split('\n') )
+        res = res.concat( JSON.stringify(JSON.parse(response.responseText),undefined,4).split('\n') )
         
         $('#bet-request').html(_.reduce(res, function(text, line) { return text + '< ' + line + '\n' }, $('#bet-request').html()))
     }
     
-    window.Betable = new Betable()
-})( window.jQuery, window.Raphael, _ )
+    window.BetableSlot = new BetableSlot()
+})( window.jQuery, window.Raphael, _ );

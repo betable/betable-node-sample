@@ -4,12 +4,13 @@
         <script src="/javascript/vendor/jquery.js" ></script>
         <script src="/javascript/vendor/underscore.js"></script>
         <script src="/javascript/vendor/raphael.js"></script>
+        <script src="/javascript/vendor/betable-browser-sdk.js"></script>
         <script src="/javascript/reel.js"></script>
         <script src="/javascript/payline.js"></script>
         <script src="/javascript/betable.js"></script>
         <script>
         $(document).ready(function() {
-            Betable.init( {[ print(configuration) ]} )
+            BetableSlot.init( {[ print(config) ]}, "{{access_token}}" )
         })
         </script>
         <link rel="stylesheet" type="text/css" href="/css/default.css">

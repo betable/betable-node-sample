@@ -33,7 +33,7 @@
     }
     Reel.prototype.draw_spin = function() {
         _.each( $('#'+this.id + ' ul li'), function( li ) {
-            $(li).text( Betable.get_random_symbol() )
+            $(li).text( BetableSlot.get_random_symbol() )
         })
     }
     Reel.prototype.resolve = function( reel ) {

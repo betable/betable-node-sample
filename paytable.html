@@ -1,0 +1,38 @@
+<html>
+    <head>
+        <title>Betable Paytable</title>
+        <script src="/javascript/vendor/jquery.js" ></script>
+        <script src="/javascript/vendor/underscore.js"></script>
+        <script>
+        $(document).ready(function() {
+            $('#bet-button').click(function() {
+                $.post( '/bet', {
+                    wager: $('#wager-amount').val()
+                }, function( body ) {
+                    var response = body.bet_response
+                    
+                    var earnings = (+response.payout * +$('#wager-amount').val())-1
+                    
+                    $('#balance').html( (+$('#balance').html() + earnings).toFixed(2) )
+                    $('#response').html( 'You got ' + response.outcome + ' and you ' + (earnings < 0 ? 'LOST ':'WON ')+ Math.abs(earnings))
+                    var response_img
+                    if( earnings < 0 ) {
+                        response_img = 'http://cache.gawker.com/assets/images/7/2010/04/lost-logo.jpg'
+                    } else {
+                        response_img = 'http://seedmagazine.com/images/uploads/millions_article1.jpg'
+                    }
+                    $('#response-img').html( '<img src='+response_img+' />' )
+                })
+            })
+        })
+        </script>
+        <link rel="stylesheet" type="text/css" href="/css/default.css">
+    </head>
+    <body>
+        <div>Wallet: <span id="balance">{{balance}}</span></div>
+        <div>Name: {{first_name}}</div>
+        <input id="wager-amount" value="1.00" /><button id="bet-button">Bet motha fukkka</button>
+        <div id="response"></div>
+        <div id="response-img"></div>
+    </body>
+</html>

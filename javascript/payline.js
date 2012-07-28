@@ -42,7 +42,7 @@
                 path += (pos.left + (wt/2)) + ',' + (pos.top + (ht/2))
             })
             
-            this.line = Betable.paper.path( path )
+            this.line = BetableSlot.paper.path( path )
             this.line.attr('stroke', this.payline_colors.pop() )
             this.line.attr('opacity', 0.3 )
             this.line.hover( on_hover, off_hover )
