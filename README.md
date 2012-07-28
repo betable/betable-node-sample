@@ -3,6 +3,5 @@ Betable Test App
 
 Installation
 ------------
-npm install
-
+npm install 
 NODE_ECONOMY=(sandbox|real) node server.js
