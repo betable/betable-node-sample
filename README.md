@@ -15,14 +15,14 @@ Configuration
 
 #### config/configs/base.js
 
-Update *game_id*
-Update *symbols*
-Update *paylines*
+* Update *game_id*
+* Update *symbols*
+* Update *paylines*
 
 #### config/configs/(real|sandbox).js
 
-Update *api_key*
-Update *api_secret*
+* Update *api_key*
+* Update *api_secret*
 
 Start the server
 ------------
