@@ -7,7 +7,8 @@ The game is a configurable slot machine.
 
 Installation
 ------------
-npm install (from the app directory)
+*npm install*
+(from the app directory)
 
 
 Configuration
@@ -26,4 +27,4 @@ Configuration
 
 Start the server
 ------------
-NODE_ECONOMY=(sandbox|real) node server.js
+*NODE_ECONOMY=(sandbox|real) node server.js*
