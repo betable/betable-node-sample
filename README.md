@@ -11,7 +11,7 @@ Installation
 (from the app directory)
 
 
-Configuration
+Configuration (Sandbox mode)
 ------------
 
 #### config/configs/base.js
@@ -20,11 +20,11 @@ Configuration
 * Update *symbols*
 * Update *paylines*
 
-#### config/configs/(real|sandbox).js
+#### config/configs/sandbox.js
 
 * Update *api_key*
 * Update *api_secret*
 
 Start the server
 ------------
-*NODE_ECONOMY=(sandbox|real) node server.js*
+*NODE_ENV=production NODE_ECONOMY=sandbox node server.js*
