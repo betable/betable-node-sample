@@ -83,8 +83,7 @@
         }
         
         this.sdk.canIGamble( function( response ) {
-            //dont check this in
-            //response.can_gamble = true
+            if( self.economy == "sandbox" ) response.can_gamble = true
             if( response && response.can_gamble ) {
                 self.sdk.bet( bet_obj, bet_response, function( error ) {
                     console.log( 'error', error )
@@ -92,9 +91,11 @@
                 })
             } else {
                 //cannot gamble, display virtual currency
+                console.log('This user cannot gamble')
             }
         }, function( error ) {
             //perform error
+            console.log('An error has occured', error)
         })
     }
 
