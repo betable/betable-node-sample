@@ -84,7 +84,7 @@
         
         this.sdk.canIGamble( function( response ) {
             //dont check this in
-            response.can_gamble = true
+            //response.can_gamble = true
             if( response && response.can_gamble ) {
                 self.sdk.bet( bet_obj, bet_response, function( error ) {
                     console.log( 'error', error )
