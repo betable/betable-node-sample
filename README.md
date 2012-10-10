@@ -28,3 +28,7 @@ Configuration (Sandbox mode)
 Start the server
 ------------
 *NODE_ENV=production NODE_ECONOMY=sandbox node server.js*
+
+if you want to use unbacked bets use:
+
+*NODE_ENV=production NODE_ECONOMY=sandbox NODE_MODE=unbacked node server.js*

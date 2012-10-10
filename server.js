@@ -20,6 +20,7 @@ server.get( '/', function( req, res, next ) {
           , config        : JSON.stringify({
                 configuration : config.configuration
               , economy       : config.economy
+              , mode          : config.mode
               , game_id       : config.game_id
             })
         })

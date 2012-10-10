@@ -46,6 +46,26 @@ Betable.prototype.bet = function Betable_bet(options, callback, errback) {
     )
 }
 
+Betable.prototype.unbackedBet = function Betable_unbackedBet(options, callback, errback) {
+    this.xhr(
+        'POST'
+      , '/games/' + this.gameId + '/unbacked-bet'
+      , options
+      , callback
+      , errback
+    )
+}
+
+Betable.prototype.betCredits = function Betable_bet_credits(gameId, options, callback, errback) {
+    this.xhr(
+        'POST'
+      , '/games/' + this.gameId + '/' + gameId + '/bet'
+      , options
+      , callback
+      , errback
+    )
+}
+
 Betable.prototype.canIGamble = function Betable_canIGamble(callback, errback) {
     this.xhr('GET', '/can-i-gamble', void 0, callback, errback)
 }
