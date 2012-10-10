@@ -37,30 +37,23 @@
         var self = this
         _.each( this.reels, function( reel ) { reel.spin() })
         
+        var bet_obj = {
+            currency : 'GBP'
+          , economy  : self.economy
+          , paylines : _.map( _.filter( self.paylines, function( payline ) {
+                payline.reset()
+                return $('#' + payline.id ).is(':visible')
+            }), function( payline ) {
+                return payline.payline
+            })
+          , wager    : $('#wager-input').val()
+        }
+
         if ( self.mode == 'unbacked' ) {
-          var bet_obj = {
-              paylines : _.map( _.filter( self.paylines, function( payline ) {
-                  payline.reset()
-                  return $('#' + payline.id ).is(':visible')
-              }), function( payline ) {
-                  return payline.payline
-              })
-            , wager    : $('#wager-input').val()
-          }
+          delete bet_obj.currency
+          delete bet_obj.economy
         }
-        else {
-          var bet_obj = {
-              currency : 'GBP'
-            , economy  : self.economy
-            , paylines : _.map( _.filter( self.paylines, function( payline ) {
-                  payline.reset()
-                  return $('#' + payline.id ).is(':visible')
-              }), function( payline ) {
-                  return payline.payline
-              })
-            , wager    : $('#wager-input').val()
-          }         
-        }
+
         
         var bet_response = function( data, xhr ) { 
             var num_reels   = data.window[0].length
