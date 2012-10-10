@@ -22,6 +22,7 @@
         
         this.sdk          = new Betable( config.game_id, access_token )
         this.economy      = config.economy
+        this.mode         = config.mode
         this.game_id      = config.game_id
         this.access_token = access_token
         
@@ -36,19 +37,32 @@
         var self = this
         _.each( this.reels, function( reel ) { reel.spin() })
         
-        var bet_obj = {
-            currency : 'GBP'
-          , economy  : self.economy
-          , paylines : _.map( _.filter( self.paylines, function( payline ) {
-                payline.reset()
-                return $('#' + payline.id ).is(':visible')
-            }), function( payline ) {
-                return payline.payline
-            })
-          , wager    : $('#wager-input').val()
+        if ( self.mode == 'unbacked' ) {
+          var bet_obj = {
+              paylines : _.map( _.filter( self.paylines, function( payline ) {
+                  payline.reset()
+                  return $('#' + payline.id ).is(':visible')
+              }), function( payline ) {
+                  return payline.payline
+              })
+            , wager    : $('#wager-input').val()
+          }
+        }
+        else {
+          var bet_obj = {
+              currency : 'GBP'
+            , economy  : self.economy
+            , paylines : _.map( _.filter( self.paylines, function( payline ) {
+                  payline.reset()
+                  return $('#' + payline.id ).is(':visible')
+              }), function( payline ) {
+                  return payline.payline
+              })
+            , wager    : $('#wager-input').val()
+          }         
         }
         
-        var bet_response = function( data, xhr ) {            
+        var bet_response = function( data, xhr ) { 
             var num_reels   = data.window[0].length
               , paylines_id = {}
             
@@ -84,11 +98,18 @@
         
         this.sdk.canIGamble( function( response ) {
             if( self.economy == "sandbox" ) response.can_gamble = true
-            if( response && response.can_gamble ) {
-                self.sdk.bet( bet_obj, bet_response, function( error ) {
+            if( response && response.can_gamble) {
+              if ( self.mode == 'unbacked' ) {
+                self.sdk.unbackedBet( bet_obj, bet_response, function( error ) {
                     console.log( 'error', error )
                     //handle error
                 })
+              } else {
+                  self.sdk.bet( bet_obj, bet_response, function( error ) {
+                      console.log( 'error', error )
+                      //handle error
+                }) 
+              }
             } else {
                 //cannot gamble, display virtual currency
                 console.log('This user cannot gamble')
@@ -124,8 +145,13 @@
     }
     
     BetableSlot.prototype.print_response = function( response, request_body ) {
-        var res = ['POST /1.0/bet/'+this.game_id+'/?access_token='+this.access_token
-                 , 'Content-Type: application/json; charset=utf-8']
+        if (this.mode == "unbacked") {
+          var res = ['POST /1.0/games/'+this.game_id+'/unbacked-bet?access_token='+this.access_token
+                  , 'Content-Type: application/json; charset=utf-8']
+          } else {
+          var res = ['POST /1.0/games/'+this.game_id+'/bet?access_token='+this.access_token
+                  , 'Content-Type: application/json; charset=utf-8']
+          }
         res = res.concat( JSON.stringify(request_body,undefined,4).split('\n'))
         
         $('#bet-request').html(_.reduce(res, function(text, line) { return text + '> ' + line + '\n' }, ''))
