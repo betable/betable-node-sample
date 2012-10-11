@@ -5,6 +5,7 @@ var _           = require( 'underscore' ),
       , real    : require( './configs/real' )
     }
   , economy     = process.env.NODE_ECONOMY
+  , mode        = process.env.NODE_MODE
   , config      = {}
 
 if( _.indexOf(['real','sandbox'], economy ) == -1 ) {
@@ -12,12 +13,16 @@ if( _.indexOf(['real','sandbox'], economy ) == -1 ) {
     process.exit()
 }
 
-config = _.extend( configs.base, configs[economy] )
+config = _.extend( configs.base, configs[economy], configs[mode] )
 
 //check commandline for port
-config.port    = process.env.NODE_PORT || config.port
-config.economy = economy
+config.port     = process.env.NODE_PORT || config.port
+config.economy  = economy
+config.mode     = mode
 
 console.log( "Starting server on port " + config.port + " using a " + economy + " economy" )
+if(mode == 'unbacked'){
+  console.log("Bets will be unbacked")
+}
 
 module.exports = config
